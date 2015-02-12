@@ -3,13 +3,14 @@ require 'aws-sdk-core'
 
 class Pazuzu
   attr_accessor :volume_description, :vol_inst_mapping
+  attr_accessor :region
 
   def initialize(argf)
+    @region = 'us-west-1'
     @volume_description = ''
     @vol_inst_mapping = {}
     argf.each_line { |line| @volume_description += line }
     extract
-    puts vol_inst_mapping
     tag_the_volumes
   end
   
@@ -25,31 +26,32 @@ class Pazuzu
   
 
   def tag_the_volumes
-    ec2instance = Aws::EC2::Client.new(:region => "us-west-1")
-    resp = ec2instance.describe_instances({instance_ids: ['i-08d193cb']})
-    tags = resp[:reservations][0][:instances][0][:tags]
-    tags.each do |tag|
-      if tag.key == "Name"
-        tag_it_with(tag.value)
+    vol_inst_mapping.each do |vol_id, inst_id|
+      ec2instance = Aws::EC2::Client.new(:region => region)
+      resp = ec2instance.describe_instances({instance_ids: [inst_id]})
+      tags = resp[:reservations][0][:instances][0][:tags]
+      tags.each do |tag|
+        if tag.key == "Name"
+          tag_it_with(vol_id: vol_id, tag: tag.value)
+        end
       end
     end
 
-    # @nodes.each do |n|
-    #   Log.info("Tagging #{n.fqdn} for #{n.instance_id}")
-    #   resp = @ec2.create_tags({
-    #     resources: [n.instance_id],
-    #     tags: [
-    #       {
-    #         key: "Name",
-    #         value: vol_inst_mapping[instance_id]
-    #       }
-    #     ]
-    #   })
-    # end
   end
 
-  def tag_it_with(tag)
-    
+  def tag_it_with(vol_id:, tag:)
+    # ec2instance
+    puts "Tagging #{vol_id} with #{tag}"
+    ec2instance = Aws::EC2::Client.new(:region => region)
+    resp = ec2instance.create_tags({
+      resources: [vol_id],
+      tags: [
+        {
+          key: "Name",
+          value: tag
+        }
+      ]
+    })
   end
 
 end

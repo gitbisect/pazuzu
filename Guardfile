@@ -1,5 +1,4 @@
 def on_rb_or_yml_update
-  # run_pazuzu = "aws --region us-west-1 ec2 describe-volumes | ruby pazuzu.rb | jsonlint"
   run_pazuzu = "aws --region us-west-1 ec2 describe-volumes | ruby pazuzu.rb"
 
 

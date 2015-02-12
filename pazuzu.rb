@@ -6,7 +6,7 @@ class Pazuzu
   attr_accessor :region
 
   def initialize(argf)
-    @region = 'us-west-1'
+    @region = 'us-east-1'
     @volume_description = ''
     @vol_inst_mapping = {}
     argf.each_line { |line| @volume_description += line }
@@ -19,7 +19,9 @@ class Pazuzu
     vd = JSON.parse(volume_description)
     vd.each do |key, volumes|
       volumes.each do |volume|
-        vol_inst_mapping[volume['VolumeId']] = volume['Attachments'][0]['InstanceId']
+        if volume['Attachments'].count > 0
+          vol_inst_mapping[volume['VolumeId']] = volume['Attachments'][0]['InstanceId']
+        end
       end
     end
   end
@@ -40,7 +42,6 @@ class Pazuzu
   end
 
   def tag_it_with(vol_id:, tag:)
-    # ec2instance
     puts "Tagging #{vol_id} with #{tag}"
     ec2instance = Aws::EC2::Client.new(:region => region)
     resp = ec2instance.create_tags({

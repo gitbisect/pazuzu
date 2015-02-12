@@ -1,5 +1,6 @@
 def on_rb_or_yml_update
-  run_pazuzu = "aws --region us-east-1 ec2 describe-volumes | ruby pazuzu.rb"
+  # run_pazuzu = "aws --region us-east-1 ec2 describe-volumes | ruby pazuzu.rb"
+  run_pazuzu = "ruby pazuzu.rb us-west-1"
 
 
 

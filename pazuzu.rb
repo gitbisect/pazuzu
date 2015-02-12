@@ -5,24 +5,29 @@ class Pazuzu
   attr_accessor :volume_description, :vol_inst_mapping
   attr_accessor :region
 
-  def initialize(argf)
-    @region = 'us-east-1'
-    @volume_description = ''
+  def initialize(region)
+    @region = region || 'us-west-1'
+    @volume_description = get_blank_volumes
     @vol_inst_mapping = {}
-    argf.each_line { |line| @volume_description += line }
     extract
     tag_the_volumes
   end
   
+  def get_blank_volumes
+    ec2instance = Aws::EC2::Client.new(:region => region)
+    resp = ec2instance.describe_volumes({
+      filters: [ 
+        {name: 'attachment.status', values: ['attached']},
+        {name: 'tag:Name', values: ['']}
+      ]
+    })
+    volume_description = resp[:volumes]
+  end
 
   def extract
-    vd = JSON.parse(volume_description)
-    vd.each do |key, volumes|
-      volumes.each do |volume|
-        if volume['Attachments'].count > 0
-          vol_inst_mapping[volume['VolumeId']] = volume['Attachments'][0]['InstanceId']
-        end
-      end
+    puts "Going to tag #{volume_description.count} volumes"
+    volume_description.each do |volume|
+      vol_inst_mapping[volume.attachments[0].volume_id] = volume.attachments[0].instance_id
     end
   end
   
@@ -57,4 +62,4 @@ class Pazuzu
 
 end
 
-pazuzu = Pazuzu.new(ARGF)
+pazuzu = Pazuzu.new(ARGV[0])

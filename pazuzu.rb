@@ -7,26 +7,27 @@ class Pazuzu
 
   def initialize(region)
     @region = region || 'us-west-1'
-    @volume_description = get_blank_volumes
-    @vol_inst_mapping = {}
-    extract
+    fetch_the_volumes
+    map_volumes_to_instances
     tag_the_volumes
   end
   
-  def get_blank_volumes
+  def fetch_the_volumes
     ec2instance = Aws::EC2::Client.new(:region => region)
     resp = ec2instance.describe_volumes({
-      filters: [ 
+      filters: [
         {name: 'attachment.status', values: ['attached']}
         # ,
         # {name: 'tag:Name', values: [""]} # this isnt working
       ]
     })
-    resp[:volumes] # This is the return value btw
+    @volume_description = resp[:volumes]
   end
 
-  def extract
+  def map_volumes_to_instances
     puts "Going to tag #{@volume_description.count} volumes"
+
+    @vol_inst_mapping = {}
     @volume_description.each do |volume|
       vol_inst_mapping[volume.attachments[0].volume_id] = volume.attachments[0].instance_id
     end

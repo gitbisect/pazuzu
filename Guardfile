@@ -1,5 +1,4 @@
-def on_rb_or_yml_update
-  # run_pazuzu = "aws --region us-east-1 ec2 describe-volumes | ruby pazuzu.rb"
+def on_rb_update
   run_pazuzu = "ruby pazuzu.rb us-west-1"
 
 
@@ -13,10 +12,6 @@ end
 
 
 guard :shell do
-  watch(/(.*)\.rb$/) {|m| `#{on_rb_or_yml_update}` }
+  watch(/(.*)\.rb$/) {|m| `#{on_rb_update}` }
 end
 
-
-guard :shell do
-  watch(/(.*)\.json$/) {|m| `jsonlint #{m[0]}` }
-end

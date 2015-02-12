@@ -17,16 +17,17 @@ class Pazuzu
     ec2instance = Aws::EC2::Client.new(:region => region)
     resp = ec2instance.describe_volumes({
       filters: [ 
-        {name: 'attachment.status', values: ['attached']},
-        {name: 'tag:Name', values: ['']}
+        {name: 'attachment.status', values: ['attached']}
+        # ,
+        # {name: 'tag:Name', values: [""]} # this isnt working
       ]
     })
-    volume_description = resp[:volumes]
+    resp[:volumes] # This is the return value btw
   end
 
   def extract
-    puts "Going to tag #{volume_description.count} volumes"
-    volume_description.each do |volume|
+    puts "Going to tag #{@volume_description.count} volumes"
+    @volume_description.each do |volume|
       vol_inst_mapping[volume.attachments[0].volume_id] = volume.attachments[0].instance_id
     end
   end
